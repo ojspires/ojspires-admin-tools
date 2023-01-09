@@ -1,21 +1,22 @@
 #!C:\Users\ojspires\AppData\Local\Programs\Python\Python310\python.exe
 
-######################################################################
-#    covidRetriever.py                                               #
-#                                                                    #
-# This script pulls the current covid status for the following       #
-# counties, and posts them to the discord channel indicated in the   #
-# webhook section of this document.                                  #
-# C:\Users\ojspires\workspace\Gray Hat Python\src\covidRetriever.py  #
-#   Pima County Health Dept COVID-19 Progress Report:                #
-#   https://webcms.pima.gov/cms/One.aspx?portalId=169&pageId=568644  #
-#   Maricopa County Health Dept VID-19 Progress Report:              #
-#   https://www.maricopa.gov/5786/COVID-19-Data#level                #
-# 0.1    12-31-22    Initial Rev.                        O Spires    #
-# TODO:  convert text to embed                                       #
-#https://birdie0.github.io/discord-webhooks-guide/discord_webhook.html
-# https://discord.com/developers/docs/resources/channel              #
-######################################################################
+#########################################################################
+#    covidRetriever.py                                                  #
+#                                                                       #
+# This script pulls the current covid status for the following          #
+# counties, and posts them to the discord channel indicated in the      #
+# webhook section of this document.                                     #
+# C:\Users\ojspires\workspace\Gray Hat Python\src\covidRetriever.py     #
+# * Pima County Health Dept COVID-19 Progress Report:                   #
+#   https://webcms.pima.gov/cms/One.aspx?portalId=169&pageId=568644     #
+# * Maricopa County Health Dept VID-19 Progress Report:                 #
+#   https://www.maricopa.gov/5786/COVID-19-Data#level                   #
+# 0.1    12-31-22    Initial Rev.                        O Spires       #
+# 0.2    01-08-23    Add testRun and webhook file input  O Spires       #
+# TODO:  convert text to embed                                          #
+# https://birdie0.github.io/discord-webhooks-guide/discord_webhook.html #
+# https://discord.com/developers/docs/resources/channel                 #
+#########################################################################
 
 ## Imports
 # Also needed: install Selenium and HTTPie binaries on system
@@ -28,7 +29,6 @@ from datetime import date
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
-from src.covidRetrieverMaricopa import webhook
 service = Service(executable_path=r'C:\Users\ojspires\.cache\selenium\chromedriver\win32\108.0.5359.71\chromedriver.exe')
 driver = webdriver.Chrome(service=service)
 
@@ -44,7 +44,11 @@ pagePima = requests.get(statusPima)
 statusMaricopa = r'https://www.maricopa.gov/5786/COVID-19-Data#level'
 pageMaricopa = requests.get(statusMaricopa)
 
-## Set up the webhook:
+
+## Set up the webhook: 
+#
+# the final non-commented line in the discord_webhook file 
+# should contain the full http://... webhook link
 try:
     for line in open("./discord_webhook.txt"):
         li=line.strip()
@@ -52,6 +56,7 @@ try:
             webhook = line.rstrip()
 except:
     print(webhook)
+
 
 # Locate the Pima Covid Risk Image:
 soupPima = bs(pagePima.content, "html.parser")
@@ -85,6 +90,7 @@ print(resultsMaricopa)    # Print the url of the image
 #print(httpieString)
 #os.system(httpieString)
 
+
 # Output as two lines:
 httpieString1 = 'C:\\Users\\ojspires\\AppData\\Local\\Programs\\Python\\Python310\\Scripts\\http.exe --ignore-stdin %s username=COVot content="%s."' % (webhook, resultsMaricopa)
 httpieString2 = 'C:\\Users\\ojspires\\AppData\\Local\\Programs\\Python\\Python310\\Scripts\\http.exe --ignore-stdin -f %s username=COVot content="The current COVID-19 Community Level in Pima County is:" file1@%s' % (webhook, outFile)
@@ -94,5 +100,6 @@ if testRun:
 else:
     os.system(httpieString1)
     os.system(httpieString2)
+
 # Working commandString = ''.join([' payload_json=\'{\\"username\\": \\"COVIDbot\\", \\"content\\": \\"hello\\"}\' file1@',outFile])
 # Working combined commandString = ''.join([' payload_json=\'{\\"username\\": \\"COVIDbot\\", \\"content\\": \\"',resultsMaricopa,'. The current COVID-19 Community Level in Pima County is below.\\"}\' file1@',outFile])
